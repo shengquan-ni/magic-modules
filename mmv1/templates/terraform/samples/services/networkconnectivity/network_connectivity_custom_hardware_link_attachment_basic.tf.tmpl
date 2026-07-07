@@ -1,0 +1,86 @@
+data "google_project" "project" {
+  provider = google-beta
+}
+
+resource "google_compute_network" "network" {
+  provider                = google-beta
+  name                    = "{{index $.ResourceIdVars "network_name"}}"
+  auto_create_subnetworks = false
+}
+
+resource "google_compute_subnetwork" "subnetwork" {
+  provider      = google-beta
+  name          = "{{index $.ResourceIdVars "network_name"}}-sub"
+  network       = google_compute_network.network.name
+  ip_cidr_range = "10.93.0.0/16"
+  region        = "us-south1"
+}
+
+resource "google_compute_subnetwork" "ch_subnetwork" {
+  provider      = google-beta
+  name          = "{{index $.ResourceIdVars "network_name"}}-chsub"
+  network       = google_compute_network.network.name
+  ip_cidr_range = "192.168.176.0/20"
+  region        = "us-south1"
+  purpose       = "CUSTOM_HARDWARE_LINK"
+}
+
+resource "google_compute_address" "bgp_a" {
+  provider     = google-beta
+  name         = "{{index $.ResourceIdVars "network_name"}}-bgp-a"
+  region       = "us-south1"
+  address_type = "INTERNAL"
+  purpose      = "SYSTEM_MANAGED"
+  subnetwork   = google_compute_subnetwork.subnetwork.id
+}
+
+resource "google_compute_address" "bgp_peer_a" {
+  provider     = google-beta
+  name         = "{{index $.ResourceIdVars "network_name"}}-peer-a"
+  region       = "us-south1"
+  address_type = "INTERNAL"
+  purpose      = "SYSTEM_MANAGED"
+  subnetwork   = google_compute_subnetwork.subnetwork.id
+}
+
+resource "google_compute_address" "ch_range" {
+  provider      = google-beta
+  name          = "{{index $.ResourceIdVars "network_name"}}-range"
+  region        = "us-south1"
+  address_type  = "INTERNAL"
+  purpose       = "SYSTEM_MANAGED"
+  subnetwork    = google_compute_subnetwork.ch_subnetwork.id
+  address       = "192.168.177.0"
+}
+
+resource "google_network_connectivity_custom_hardware_instance" "instance" {
+  provider = google-beta
+  custom_hardware_instance_id = "{{index $.ResourceIdVars "resource_name"}}-inst"
+  location                    = "us-south1"
+}
+
+resource "google_network_connectivity_custom_hardware_link_connect_pair" "pair" {
+  provider = google-beta
+  custom_hardware_link_connect_pair_id = "{{index $.ResourceIdVars "resource_name"}}-lcp"
+  location                             = "us-south1-d"
+  custom_hardware_instance             = google_network_connectivity_custom_hardware_instance.instance.id
+  link_type                            = "LINK_TYPE_REGULAR"
+  link_speed                           = "LINK_SPEED100_G"
+}
+
+resource "google_network_connectivity_custom_hardware_link_attachment" "attachment" {
+  provider = google-beta
+  custom_hardware_link_attachment_id = "{{index $.ResourceIdVars "resource_name"}}"
+  location                           = "us-south1-d"
+  custom_hardware_link_connect_pair  = google_network_connectivity_custom_hardware_link_connect_pair.pair.id
+  subnetwork                         = google_compute_subnetwork.subnetwork.id
+  link_type                          = "LINK_TYPE_REGULAR"
+  bgp_ip                             = "projects/${data.google_project.project.project_id}/regions/us-south1/addresses/${google_compute_address.bgp_a.name}"
+  asn                                = "64512"
+  peer_bgp_ip                        = "projects/${data.google_project.project.project_id}/regions/us-south1/addresses/${google_compute_address.bgp_peer_a.name}"
+  peer_asn                           = "64513"
+  link_address_range                 = "projects/${data.google_project.project.project_id}/regions/us-south1/addresses/${google_compute_address.ch_range.name}"
+  labels = {
+    env = "{{index $.Vars "env_label"}}"
+  }
+}

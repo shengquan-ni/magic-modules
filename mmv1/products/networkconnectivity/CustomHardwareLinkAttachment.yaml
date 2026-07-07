@@ -1,0 +1,155 @@
+# Copyright 2026 Google Inc.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+name: CustomHardwareLinkAttachment
+description: Description
+base_url: projects/{{project}}/locations/{{location}}/customHardwareLinkAttachments
+self_link: projects/{{project}}/locations/{{location}}/customHardwareLinkAttachments/{{custom_hardware_link_attachment_id}}
+create_url: projects/{{project}}/locations/{{location}}/customHardwareLinkAttachments?customHardwareLinkAttachmentId={{custom_hardware_link_attachment_id}}
+update_mask: true
+update_verb: PATCH
+import_format:
+  - projects/{{project}}/locations/{{location}}/customHardwareLinkAttachments/{{custom_hardware_link_attachment_id}}
+samples:
+  - name: network_connectivity_custom_hardware_link_attachment_basic
+    primary_resource_id: attachment
+    min_version: beta
+    skip_vcr: true
+    skip_test: "SYSTEM_MANAGED address purpose is currently only supported in GCE Alpha API"
+    steps:
+      - name: network_connectivity_custom_hardware_link_attachment_basic
+        resource_id_vars:
+          network_name: test-net-att
+          resource_name: ch-test-la
+        vars:
+          env_label: "test"
+      - name: network_connectivity_custom_hardware_link_attachment_basic
+        resource_id_vars:
+          network_name: test-net-att
+          resource_name: ch-test-la
+        vars:
+          env_label: "prod"
+  - name: network_connectivity_custom_hardware_link_attachment_ull
+    primary_resource_id: attachment
+    min_version: beta
+    skip_vcr: true
+    skip_test: "SYSTEM_MANAGED address purpose is currently only supported in GCE Alpha API"
+    steps:
+      - name: network_connectivity_custom_hardware_link_attachment_ull
+        resource_id_vars:
+          network_name: test-net-uatt
+          resource_name: ch-test-ull-la
+        vars:
+          env_label: "test"
+      - name: network_connectivity_custom_hardware_link_attachment_ull
+        resource_id_vars:
+          network_name: test-net-uatt
+          resource_name: ch-test-ull-la
+        vars:
+          env_label: "prod"
+async:
+  operation:
+    base_url: '{{op_id}}'
+  actions:
+    - create
+    - update
+    - delete
+  result:
+    resource_inside_response: true
+autogen_status: Q3VzdG9tSGFyZHdhcmVMaW5rQXR0YWNobWVudA==
+autogen_async: true
+parameters:
+  - name: location
+    type: String
+    required: true
+    description: Resource ID segment making up resource `name`. It identifies the resource within its parent collection as described in https://google.aip.dev/122.
+    immutable: true
+    url_param_only: true
+  - name: customHardwareLinkAttachmentId
+    type: String
+    required: true
+    description: |-
+      Unique id of the CustomHardwareLinkAttachment.
+      This is restricted to letters, numbers and with the first
+      character being a letter, the last a letter or a number. Matching the regex
+      `^[a-zA-Z0-9-]*[a-zA-Z0-9]$`.
+    immutable: true
+    url_param_only: true
+properties:
+  - name: asn
+    type: String
+    required: true
+    description: |-
+      ASN for network on the customer side of the CustomHardwareLinkAttachment.
+      CustomHardware BGP supports 16-bit and 32-bit ASN.
+  - name: bgpIp
+    type: String
+    required: true
+    description: |-
+      BGP speaker IP address used by the CustomHardwareInstance over this
+      CustomHardwareLinkAttachment.
+  - name: createTime
+    type: String
+    description: Time when the CustomHardwareLinkAttachment was created.
+    output: true
+  - name: customHardwareLinkConnectPair
+    type: String
+    required: true
+    description: |-
+      The name of the associated CustomHardwareLinkConnectPair resource. For
+      example:
+      `projects/{project}/locations/{location}/customHardwareLinkConnectPairs/{custom_hardware_link_connect_pair}`.
+  - name: labels
+    type: KeyValueLabels
+    description: User-defined labels.
+  - name: linkAddressRange
+    type: String
+    description: |-
+      The name of the IP address range this CustomHardwareLinkAttachment uses to
+      send/receive traffic. Format:
+      `projects/{project}/regions/{region}/addresses/{address}`
+  - name: linkType
+    type: String
+    required: true
+    description: |-
+      Possible values:
+      LINK_TYPE_REGULAR
+      LINK_TYPE_ULL
+  - name: name
+    type: String
+    description: |-
+      Identifier. The name of a CustomHardwareLinkAttachment.
+      This is populated by the service.
+    output: true
+  - name: peerAsn
+    type: String
+    required: true
+    description: |-
+      ASN for network on the Google side of the CustomHardwareLinkAttachment.
+      CustomHardware BGP supports 16-bit and 32-bit ASN.
+  - name: peerBgpIp
+    type: String
+    required: true
+    description: BGP speaker IP address used by the Google owned BGP speaker.
+  - name: subnetwork
+    type: String
+    description: |-
+      The name of the VPC subnetwork from which the BGP IP Addresses will be
+      allocated for this CustomHardwareLinkAttachment. Format:
+      `projects/{project}/regions/{region}/subnetworks/{subnetwork}`
+  - name: updateTime
+    type: String
+    description: Time when the CustomHardwareLinkAttachment was updated.
+    output: true
+min_version: beta
